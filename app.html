@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Flow Board</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f9fbfd, #eef2f7);
+            color: #2d3748;
+        }
+
+        header {
+            background: #2d3748;
+            color: white;
+            padding: 1.3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom-right-radius: 5px;
+            border-bottom-left-radius: 5px;
+            gap: 1rem;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            position: absolute;
+            left: 1rem;
+            top: 30%;
+            transform: translateY(-50%);
+        }
+
+        .search-bar {
+            flex: 0 0 350px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .search-bar input:focus {
+            border: 1px solid #63b3ed;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 6px rgba(99, 179, 237, 0.6);
+        }
+
+        .board {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .column {
+            flex: 1;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+            padding: 0.7rem;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .column h2 {
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 0.5rem 0 1rem;
+            font-weight: 600;
+        }
+
+        #open-col {
+            background: #e6f0ff;
+        }
+
+        #doing-col {
+            background: #e6ffed;
+        }
+
+        #close-col {
+            background: #fef6e6;
+        }
+
+        #open-col h2 {
+            color: #1a56db;
+        }
+
+        #doing-col h2 {
+            color: #2f855a;
+        }
+
+        #close-col h2 {
+            color: #c05621;
+        }
+
+        .add-task-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: #1a56db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+            line-height: 1;
+        }
+
+        .add-task-btn:hover {
+            background: #1741a7;
+        }
+
+        .task {
+            border-radius: 8px;
+            padding: 0.7rem;
+            margin-bottom: 0.7rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: 0.2s;
+            max-width: 100%;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .task:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+        }
+
+        .task h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-line;
+        }
+
+        .task p {
+            margin: 0.3rem 0;
+            font-size: 0.9rem;
+            color: #4a5568;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-line;
+        }
+
+        .task .due {
+            font-weight: 600;
+        }
+
+        .due.red {
+            color: #e53e3e;
+        }
+
+        .due.black {
+            color: #2d3748;
+        }
+
+        .open-task {
+            background: #ffffff;
+        }
+
+        .doing-task {
+            background: #f7fff9;
+        }
+
+        .close-task {
+            background: #fffdf8;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.3rem;
+            margin-top: 0.5rem;
+            align-items: center;
+        }
+
+        .actions button {
+            flex: 1;
+            padding: 0.3rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .actions button.edit {
+            background: #3182ce;
+            color: white;
+        }
+
+        .actions button.delete {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .actions select {
+            flex: 1;
+            padding: 0.2rem;
+            border-radius: 4px;
+            border: 1px solid #cbd5e0;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: rgba(223, 222, 222, 0.95);
+            padding: 1rem;
+            border-radius: 10px;
+            width: 450px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            margin-bottom: 0.9rem;
+            padding: 0.5rem;
+            border: 1px solid #a4a7b1;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            box-sizing: border-box;
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .modal-content button {
+            padding: 0.6rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #1a202c;
+            color: #ececec;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Task Flow Board</h1>
+    <div class="search-bar">
+        <input id="searchInput" type="text" placeholder="Search tasks...">
+    </div>
+</header>
+
+<div class="board">
+    <div class="column" id="open-col">
+        <h2>Open</h2>
+        <button class="add-task-btn" onclick="openModal()">+</button>
+    </div>
+    <div class="column" id="doing-col"><h2>Doing</h2></div>
+    <div class="column" id="close-col"><h2>Close</h2></div>
+</div>
+
+<div class="modal" id="taskModal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Create Task</h2>
+        <label for="titleInput" style="margin-bottom:0.3rem; font-size:0.85rem; color:#4a5568;">Title</label>
+        <input id="titleInput" type="text" placeholder="Title">
+        <label for="descInput" style="margin-bottom:0.3rem; font-size:0.85rem; color:#4a5568;">Description</label>
+        <textarea id="descInput" placeholder="Description"></textarea>
+        <label for="dueInput" style="margin-bottom:0.3rem; font-size:0.85rem; color:#4a5568;">Due Date</label>
+        <input id="dueInput" type="date">
+        <button id="saveBtn" onclick="saveTask()">Save</button>
+    </div>
+</div>
+
+<script>
+    const API_URL = "http://localhost:5000/api/tasks/";
+    const modal = document.getElementById("taskModal");
+    const modalTitle = document.getElementById("modalTitle");
+    let editMode = false, editingId = null;
+
+    function openModal(task = null) {
+        modal.style.display = "flex";
+        if (task) {
+            editMode = true;
+            editingId = task.id;
+            modalTitle.textContent = "Edit Task";
+            document.getElementById("titleInput").value = task.title;
+            document.getElementById("descInput").value = task.description || "";
+            document.getElementById("dueInput").value = task.due_date || "";
+        } else {
+            editMode = false;
+            editingId = null;
+            modalTitle.textContent = "Create Task";
+            document.getElementById("titleInput").value = "";
+            document.getElementById("descInput").value = "";
+            document.getElementById("dueInput").value = "";
+        }
+    }
+
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    function renderTask(task) {
+        const div = document.createElement("div");
+        div.className = "task " + task.status + "-task";
+        const dueText = task.due_date
+            ? new Date(task.due_date) < new Date()
+                ? `<span class="due red">${task.due_date}</span>`
+                : `<span class="due black">${task.due_date}</span>`
+            : `<span class="due">No deadline</span>`;
+        div.innerHTML = `
+      <h3>${task.title}</h3>
+      <p>${task.description || ""}</p>
+      <p>Due: ${dueText}</p>
+      <div class="actions">
+        <button class="edit" onclick='openModal(${JSON.stringify(task)})'>Edit</button>
+        <button class="delete" onclick="deleteTask(${task.id})">Delete</button>
+        <select onchange="updateStatus(${task.id}, this.value)">
+          <option value="open" ${task.status === "open" ? "selected" : ""}>Open</option>
+          <option value="doing" ${task.status === "doing" ? "selected" : ""}>Doing</option>
+          <option value="close" ${task.status === "close" ? "selected" : ""}>Close</option>
+        </select>
+      </div>
+    `;
+        return div;
+    }
+
+    async function loadTasks(search = "") {
+        document.getElementById("open-col").innerHTML = '<h2>Open</h2><button class="add-task-btn" onclick="openModal()">+</button>';
+        document.getElementById("doing-col").innerHTML = "<h2>Doing</h2>";
+        document.getElementById("close-col").innerHTML = "<h2>Close</h2>";
+        const res = await fetch(API_URL + (search ? `?search=${encodeURIComponent(search)}` : ""));
+        const data = await res.json();
+        data.results.forEach(task => {
+            document.getElementById(task.status + "-col").appendChild(renderTask(task));
+        });
+    }
+
+    async function saveTask() {
+        const title = document.getElementById("titleInput").value;
+        const description = document.getElementById("descInput").value;
+        const due_date = document.getElementById("dueInput").value || null;
+        if (editMode) {
+            const res = await fetch(`${API_URL}${editingId}`, {
+                method: "PUT", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({title, description, due_date})
+            });
+            if (res.ok) {
+                closeModal();
+                loadTasks();
+            } else alert("Update failed");
+        } else {
+            const res = await fetch(API_URL, {
+                method: "POST", headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({title, description, due_date})
+            });
+            if (res.ok) {
+                closeModal();
+                loadTasks();
+            } else alert("Error creating task");
+        }
+    }
+
+    async function deleteTask(id) {
+        if (!confirm("Delete this task?")) return;
+        const res = await fetch(`${API_URL}${id}`, {method: "DELETE"});
+        if (res.ok) loadTasks(); else alert("Delete failed");
+    }
+
+    async function updateStatus(id, status) {
+        const res = await fetch(`${API_URL}${id}`, {
+            method: "PATCH", headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({status})
+        });
+        if (res.ok) loadTasks(); else alert("Status update failed");
+    }
+
+    document.getElementById("searchInput").addEventListener("input", e => {
+        loadTasks(e.target.value);
+    });
+
+    window.onclick = e => {
+        if (e.target === modal) closeModal();
+    }
+
+    loadTasks();
+</script>
+</body>
+</html>
